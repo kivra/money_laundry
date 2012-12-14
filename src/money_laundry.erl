@@ -27,7 +27,7 @@ currency_to_internal(<<"SEK">>) ->
 
 -ifdef(TEST).
 
-%% TODO: 0 0.0 1 - 1234567890/1234567890 000 1.000 etc
+%% TODO: 0 0.0 1 - 1234567890.1234567890 000 1.000 etc
 new_test() ->
     {money_laundry, sek, _Opaque} = money_laundry:new(<<"1234,56">>, <<"SEK">>).
 
