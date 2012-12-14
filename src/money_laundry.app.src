@@ -1,0 +1,11 @@
+{application, money_laundry,
+ [
+  {description, "Monetary formatting"},
+  {vsn, "1"},
+  {registered, []},
+  {applications, [
+                  kernel,
+                  stdlib
+                 ]},
+  {env, []}
+ ]}.
