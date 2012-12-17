@@ -3,6 +3,7 @@
 -export([
          new/2
          ,format/2
+         ,currency_code/1
         ]).
 
 -ifdef(TEST).
@@ -36,8 +37,18 @@ format(decimal, {money_laundry, sek, {decimal, Numerator, Denominator}}) ->
     Integer = round((Numerator - Fraction)/Denominator),
     iolist_to_binary(io_lib:format("~B,~B", [Integer, Fraction])).
 
+
+currency_code({money_laundry, CurrencyTerm, _}) ->
+    internal_to_currency(CurrencyTerm).
+
+
+%%==============================================================================
+
 currency_to_internal(<<"SEK">>) ->
     sek.
+
+internal_to_currency(sek) ->
+    <<"SEK">>.
 
 
 -ifdef(TEST).
