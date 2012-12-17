@@ -1,7 +1,9 @@
 money_laundry
 =============
 
-Erlang Currency and money laundering functions
+Erlang Currency and money laundering functions. The rationale behind a custom
+numbers library is to be able to store and process numberic values while only
+losing precision when necessary.
 
 ``` erlang
 1> money_laundry:new(<<"1234,56">>, <<"SEK">>).
