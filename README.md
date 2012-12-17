@@ -12,3 +12,11 @@ losing precision when necessary.
 3> money_laundry:format(oere, {money_laundry, sek, {rational, 123456, 100}}).
 4> <<"123456">>
 ```
+
+## Testing
+
+Test with
+
+```
+make test
+```
