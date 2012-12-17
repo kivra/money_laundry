@@ -36,6 +36,7 @@ currency_to_internal(<<"SEK">>) ->
 
 -ifdef(TEST).
 
+
 %% Basically just tests that it doesn't crash and the the parts we care about
 %% are as expected.
 new_test() ->
