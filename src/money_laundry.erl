@@ -9,6 +9,12 @@
 -include_lib("eunit/include/eunit.hrl").
 -endif.
 
+%% @doc Assumes Amount uses comma for decimal separator, has no whitespace,
+%% no thousands separator. That means the only valid characters are
+%% 0123456789,-
+%%
+%% It also assumes the amount is well-formed, ie ,13 is not 0,10, but money_laundry
+%% will not necessarily do anything good with it.
 new(Amount, Currency) ->
     {money_laundry, currency_to_internal(Currency), rational:from_string(Amount)}.
 
