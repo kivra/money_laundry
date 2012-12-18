@@ -31,11 +31,11 @@ from_string(Amount) when is_list(Amount) ->
     %% - Required whole part
     %% -- May start with - or +
     %% -- required integer part
-    %% - optional comma separator
+    %% - optional comma or period separator
     %% - optional fraction part
     %% -- final digit of fraction part must be non-zero
     %% - any number of trailing zeros are ignored
-    RE = "^([-+]?[0-9]+),?([0-9]*[1-9])?0*$",
+    RE = "^([-+]?[0-9]+)[,\.]?([0-9]*[1-9])?0*$",
     {Numerator, Denominator} =
         case re:run(Amount, RE, [{capture, all_but_first, list}]) of
             %% Integer starts with minus sign
@@ -121,6 +121,9 @@ from_string_test_() ->
          {"0,5", 1, 2, 5},
          {"3,142", 1571, 500, 2},
          {"144,144", 18018, 125, 8},
+         {"0.5", 1, 2, 5},
+         {"3.142", 1571, 500, 2},
+         {"144.144", 18018, 125, 8},
          {"190", 190, 1, 1}
         ],
     [from_string_test_fun(String, Numer, Denom, DecFac)

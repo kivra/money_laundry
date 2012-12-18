@@ -50,7 +50,7 @@ format(oere, {money_laundry, sek, {decimal, Numerator, 1}}) ->
 format(decimal, {money_laundry, sek, {decimal, Numerator, Denominator}}) ->
     Fraction = Numerator rem Denominator,
     Integer = round((Numerator - Fraction)/Denominator),
-    iolist_to_binary(io_lib:format("~B,~B", [Integer, Fraction])).
+    iolist_to_binary(io_lib:format("~B.~B", [Integer, Fraction])).
 
 %% @doc Returns the currency code for a given currency amount.
 -spec currency_code(laundry_money()) -> currency_code().
@@ -94,9 +94,11 @@ format_oere_test_fun(String, Expected) ->
                          money_laundry:format(oere, {money_laundry, sek, Rational}))
     end.
 
+%% Decimal separator for from_string is allowed to be , or .
+%% Decimal separator for decimal format to format/1 is .
 format_decimal_test() ->
     Rational = rational:from_string(<<"1234,56">>),
-    ?assertEqual(<<"1234,56">>,
+    ?assertEqual(<<"1234.56">>,
                   money_laundry:format(decimal, {money_laundry, sek, Rational})).
 
 -endif.
