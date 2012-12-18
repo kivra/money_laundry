@@ -79,6 +79,7 @@ format_oere_test_() ->
     Cases =
         [{<<"1234,56">>, <<"123456">>}
          ,{<<"10,1">>, <<"1010">>}
+         ,{<<"10,10">>, <<"1010">>}
          ,{<<"1234">>, <<"123400">>}
 
          %% Found by proper:check_specs/1: oere,{money_laundry,sek,{rational,-1,4}}

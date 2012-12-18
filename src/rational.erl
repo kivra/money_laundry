@@ -89,7 +89,7 @@ denominator({rational, _, Denominator, _}) ->
 %% internal
 
 %% Assumes a decimal fraction as imput
-normalize({rational, Numerator, Denominator, 1} = In) ->
+normalize({rational, Numerator, Denominator, 1}) ->
     %% List fold over normalize functions might be nicer
     GCD = case gcd(Numerator, Denominator) of
               Integer when Integer < 0 -> -Integer;
@@ -104,20 +104,6 @@ gcd(A, 0) ->
     A;
 gcd(A, B) ->
     gcd(B, A rem B).
-
-%%% Source: http://schemecookbook.org/Erlang/NumberRounding
--spec ceiling(float()) -> integer().
-ceiling(X) ->
-    T = erlang:trunc(X),
-    case (X - T) of
-        Neg when Neg < 0 ->
-            T;
-        Pos when Pos > 0 ->
-            T + 1;
-        _ ->
-            T
-    end.
-
 
 %%==============================================================================
 
