@@ -10,17 +10,32 @@
 -include_lib("eunit/include/eunit.hrl").
 -endif.
 
+-type currency_atom() :: sek.
+-type currency_code() :: binary().
+-type laundry_money() :: {money_laundry, currency_atom(), rational:rational()}.
+-type format() :: oere
+                | decimal.
+
 %% @doc Assumes Amount uses comma for decimal separator, has no whitespace,
 %% no thousands separator. That means the only valid characters are
 %% 0123456789,-
 %%
 %% It also assumes the amount is well-formed, ie ,13 is not 0,13, but money_laundry
 %% will not necessarily do anything good with it.
+-spec new(Amount, Currency) -> laundry_money() when
+      Amount :: binary(), Currency :: currency_code().
 new(Amount, Currency) ->
     {money_laundry, currency_to_internal(Currency), rational:from_string(Amount)}.
 
-format(Format, {money_laundry, Currency, {rational, Numerator, Denominator}}) ->
-    DecimalFrac = rational:to_decimal_fraction({rational, Numerator, Denominator}),
+%% @doc Returns a string representation of the amount, defined by the given format.
+%% Oere returns an integer for SEK amounts. decimal returns a decimal form of any
+%% amount.
+%%
+%% proper:check_specs/1 quickly finds examples that don't work, e.g.
+%% [oere,{money_laundry,sek,{rational,1,3}}] which is infinitely repeating.
+-spec format(format(), laundry_money()) -> binary().
+format(Format, {money_laundry, Currency, Amount={rational,_,_,_}}) ->
+    DecimalFrac = rational:to_decimal_fraction(Amount),
     format(Format, {money_laundry, Currency, DecimalFrac});
 
 %% Keep it undefined for fractions with denominators > 100 because that
@@ -37,7 +52,8 @@ format(decimal, {money_laundry, sek, {decimal, Numerator, Denominator}}) ->
     Integer = round((Numerator - Fraction)/Denominator),
     iolist_to_binary(io_lib:format("~B,~B", [Integer, Fraction])).
 
-
+%% @doc Returns the currency code for a given currency amount.
+-spec currency_code(laundry_money()) -> currency_code().
 currency_code({money_laundry, CurrencyTerm, _}) ->
     internal_to_currency(CurrencyTerm).
 
@@ -64,6 +80,9 @@ format_oere_test_() ->
         [{<<"1234,56">>, <<"123456">>}
          ,{<<"10,1">>, <<"1010">>}
          ,{<<"1234">>, <<"123400">>}
+
+         %% Found by proper:check_specs/1: oere,{money_laundry,sek,{rational,-1,4}}
+         ,{<<"-0,25">>, <<"-25">>}
         ],
     [format_oere_test_fun(String, Expected) || {String, Expected} <- Cases].
 
