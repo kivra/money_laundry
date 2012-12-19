@@ -4,6 +4,7 @@
          new/2
          ,format/2
          ,currency_code/1
+         ,checkspecs_test/1
         ]).
 
 -ifdef(TEST).
@@ -57,6 +58,21 @@ format(decimal, {money_laundry, sek, {decimal, Numerator, Denominator}}) ->
 currency_code({money_laundry, CurrencyTerm, _}) ->
     internal_to_currency(CurrencyTerm).
 
+
+%% @doc This is just a quick way to let quickcheck try and break money_laundry
+%% without writing properties for it yet.
+-spec checkspecs_test(float()) -> float().
+checkspecs_test(Float) ->
+    BinIn = iolist_to_binary(io_lib:format("~p", [Float])),
+    BinOut = money_laundry:format(decimal, money_laundry:new(BinIn, <<"SEK">>)),
+    FloatOut = list_to_float(binary_to_list(BinOut)),
+    case abs(FloatOut - Float) < 0.000001 of
+        true ->
+            FloatOut;
+        false ->
+            io:format("Not close enough:~n~p~n~p~n", [Float, FloatOut]),
+            Float = FloatOut
+    end.
 
 %%==============================================================================
 
