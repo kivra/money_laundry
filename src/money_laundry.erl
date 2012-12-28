@@ -100,6 +100,7 @@ format_oere_test_() ->
 
          %% Found by proper:check_specs/1: oere,{money_laundry,sek,{rational,-1,4}}
          ,{<<"-0,25">>, <<"-25">>}
+         ,{<<"20.01">>, <<"2001">>}
         ],
     [format_oere_test_fun(String, Expected) || {String, Expected} <- Cases].
 
@@ -112,9 +113,21 @@ format_oere_test_fun(String, Expected) ->
 
 %% Decimal separator for from_string is allowed to be , or .
 %% Decimal separator for decimal format to format/1 is .
-format_decimal_test() ->
-    Rational = rational:from_string(<<"1234,56">>),
-    ?assertEqual(<<"1234.56">>,
-                  money_laundry:format(decimal, {money_laundry, sek, Rational})).
+format_decimal_test_() ->
+    Cases =
+        [{<<"1234.56">>, <<"1234,56">>}
+         ,<<"1234.56">>
+         ,<<"20.01">>],
+    [format_decimal_test_fun(String) || String <- Cases].
+
+format_decimal_test_fun({Expected, String}) ->
+    fun() ->
+            Rational = rational:from_string(String),
+            ?assertEqual(Expected,
+                         money_laundry:format(decimal,
+                                              {money_laundry, sek, Rational}))
+    end;
+format_decimal_test_fun(String) ->
+    format_decimal_test_fun({String, String}).
 
 -endif.
