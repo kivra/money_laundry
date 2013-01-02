@@ -122,6 +122,7 @@ format_decimal_test_() ->
          ,<<"20.01">>
          ,<<"20.001">>
          ,<<"21.111">>
+         ,<<"21.00">>
         ],
     [format_decimal_test_fun(String) || String <- Cases].
 
