@@ -50,10 +50,15 @@ format(oere, {money_laundry, sek, {decimal, Numerator, 1}}) ->
 
 format(decimal, {money_laundry, sek, {decimal, Numerator, Denominator}}) ->
     Fraction = Numerator rem Denominator,
-    FractionWidth = integer_to_list(trunc(math:log10(Denominator))),
+    FractionWidth = trunc(math:log10(Denominator)),
     Integer = round((Numerator - Fraction)/Denominator),
-    Fmt = "~B.~"++FractionWidth++"..0B",
-    iolist_to_binary(io_lib:format(Fmt, [Integer, Fraction])).
+    case FractionWidth of
+        0 ->
+            iolist_to_binary(io_lib:format("~B", [Integer]));
+        _ ->
+            Fmt = "~B.~"++integer_to_list(FractionWidth)++"..0B",
+            iolist_to_binary(io_lib:format(Fmt, [Integer, Fraction]))
+    end.
 
 %% @doc Returns the currency code for a given currency amount.
 -spec currency_code(laundry_money()) -> currency_code().
@@ -122,7 +127,6 @@ format_decimal_test_() ->
          ,<<"20.01">>
          ,<<"20.001">>
          ,<<"21.111">>
-         ,<<"21.00">>
         ],
     [format_decimal_test_fun(String) || String <- Cases].
 
@@ -137,3 +141,4 @@ format_decimal_test_fun(String) ->
     format_decimal_test_fun({String, String}).
 
 -endif.
+
