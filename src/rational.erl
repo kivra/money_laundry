@@ -5,6 +5,7 @@
          ,to_decimal_fraction/1
          ,numerator/1
          ,denominator/1
+         ,is_rational/1
         ]).
 
 
@@ -85,6 +86,18 @@ denominator({decimal, _, Denominator}) ->
 denominator({rational, _, Denominator, _}) ->
     Denominator.
 
+%% @doc check if the input is a rational()
+-spec is_rational(any()) -> boolean().
+is_rational({rational, Numerator, Denominator, DecimalFactor}) when
+        is_integer(Numerator),
+        is_integer(Denominator),
+        Denominator > 0,
+        is_integer(DecimalFactor),
+        DecimalFactor > 0 ->
+    true;
+is_rational(_) ->
+    false.
+
 %%==============================================================================
 %% internal
 
@@ -156,5 +169,18 @@ to_dec_frac_test_fun(String, Numer, Denom) ->
             ?assertEqual({decimal, Numer, Denom},
                          to_decimal_fraction(from_string(String)))
     end.
+
+is_rational_test_() ->
+    [?_assert(is_rational({rational, 10, 20, 10}))
+    ,?_assert(is_rational({rational, -10, 20, 10}))
+    ,?_assertNot(is_rational({rational, 20, 10}))
+    ,?_assertNot(is_rational({rational, 20, 10, a}))
+    ,?_assertNot(is_rational({rational, "20", 10, 5}))
+    ,?_assertNot(is_rational({rational, 20, 2.2, 2}))
+    ,?_assertNot(is_rational({rational, 20, -10, 1}))
+    ,?_assertNot(is_rational({rational, 20, 10, -1}))
+    ,?_assertNot(is_rational(10))
+    ,?_assertNot(is_rational("10"))
+    ].
 
 -endif.

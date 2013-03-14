@@ -5,6 +5,7 @@
          ,format/2
          ,currency_code/1
          ,checkspecs_test/1
+         ,is_money_laundry/1
         ]).
 
 -ifdef(TEST).
@@ -59,6 +60,13 @@ format(decimal, {money_laundry, sek, {decimal, Numerator, Denominator}}) ->
             Fmt = "~B.~"++integer_to_list(FractionWidth)++"..0B",
             iolist_to_binary(io_lib:format(Fmt, [Integer, Fraction]))
     end.
+
+%% @doc Checks if the input seems to be a valid money_laundry term
+-spec is_money_laundry(any()) -> boolean().
+is_money_laundry({money_laundry, sek, Amount}) ->
+    rational:is_rational(Amount);
+is_money_laundry(_) ->
+    false.
 
 %% @doc Returns the currency code for a given currency amount.
 -spec currency_code(laundry_money()) -> currency_code().
@@ -139,6 +147,35 @@ format_decimal_test_fun({Expected, String}) ->
     end;
 format_decimal_test_fun(String) ->
     format_decimal_test_fun({String, String}).
+
+is_money_laundry_test_() ->
+    {foreach,
+        fun mock_rational/0,
+        fun unmock_rational/1,
+        [fun (_) ->
+            [?_assertEqual(true,
+                is_money_laundry({money_laundry, sek, i_am_rational}))
+            ,?_assertEqual(false,
+                is_money_laundry({money_laundry, sek, not_rational}))
+            ,?_assertEqual(false, is_money_laundry({money_laundry, "sek", 10}))
+            ,?_assertEqual(false, is_money_laundry({money_laundry, 20, 10}))
+            ,?_assertEqual(false, is_money_laundry(10))
+            ,?_assertEqual(false, is_money_laundry("10"))
+            ]
+         end
+        ]
+    }.
+
+mock_rational() ->
+    ok = meck:new(rational),
+    IsRational =
+        fun(i_am_rational) -> true;
+           (_)             -> false
+        end,
+    ok = meck:expect(rational, is_rational, IsRational).
+
+unmock_rational(_) ->
+    ok = meck:unload(rational).
 
 -endif.
 
