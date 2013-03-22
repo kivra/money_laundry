@@ -1,7 +1,12 @@
-all: compile
+REBAR := rebar
 
-compile:
-	rebar compile
+all: deps compile
+
+deps:
+	$(REBAR) -v get-deps
+
+compile: deps
+	$(REBAR) -v compile
 
 test: compile
-	rebar eunit
+	$(REBAR) -v skip_deps=true eunit
