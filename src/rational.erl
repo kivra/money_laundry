@@ -25,9 +25,10 @@
 %% number is returned in this module's normalized form.
 -spec from_string(Amount) -> rational() when
       Amount :: binary() | string().
-from_string(Amount) when is_binary(Amount) ->
+from_string(Amount) when is_binary(Amount)           ->
     from_string(binary_to_list(Amount));
-from_string(Amount) when is_list(Amount) ->
+from_string(StringAmount) when is_list(StringAmount) ->
+    Amount = trim_whitespace(StringAmount),
     %% Based on http://www.regular-expressions.info/floatingpoint.html
     %% - Required whole part
     %% -- May start with - or +
@@ -101,6 +102,8 @@ is_rational(_) ->
 %%==============================================================================
 %% internal
 
+trim_whitespace(Input) -> re:replace(Input, "\\s+", "", [global]).
+
 %% Assumes a decimal fraction as imput
 normalize({rational, Numerator, Denominator, 1}) ->
     %% List fold over normalize functions might be nicer
@@ -113,10 +116,8 @@ normalize({rational, Numerator, Denominator, 1}) ->
 
 %% Source: http://en.literateprograms.org/Euclidean_algorithm_(Erlang)
 -spec gcd(integer(), integer()) -> integer().
-gcd(A, 0) ->
-    A;
-gcd(A, B) ->
-    gcd(B, A rem B).
+gcd(A, 0) -> A;
+gcd(A, B) -> gcd(B, A rem B).
 
 %%==============================================================================
 
@@ -137,6 +138,7 @@ from_string_test_() ->
          {"0.5", 1, 2, 5},
          {"3.142", 1571, 500, 2},
          {"144.144", 18018, 125, 8},
+         {"1 9 0", 190, 1, 1},
          {"190", 190, 1, 1}
         ],
     [from_string_test_fun(String, Numer, Denom, DecFac)
