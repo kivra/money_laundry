@@ -1,12 +1,17 @@
-REBAR := rebar
+PROJECT = money_laundry
 
-all: deps compile
+# Options
+ERLC_OPTS = +debug_info +nowarn_shadow_vars +warnings_as_errors
+TEST_DEPS = meck
 
-deps:
-	$(REBAR) -v get-deps
+# Dependencies
+dep_meck = git://github.com/kivra/stdlib2.git 0.8.1
 
-compile: deps
-	$(REBAR) -v compile
+# Standard targets
+include erlang.mk
 
-test: compile
-	$(REBAR) -v skip_deps=true eunit
+.PHONY: eunit
+eunit:
+	erl -noshell -pa ebin -eval 'eunit:test("ebin", [verbose])' -s init stop
+
+# eof
