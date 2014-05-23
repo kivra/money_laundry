@@ -6,11 +6,12 @@ numbers library is to be able to store and process numeric values while only
 losing precision when necessary.
 
 ``` erlang
-1> money_laundry:new(<<"1234,56">>, <<"SEK">>).
-2> {money_laundry, sek, {rational, 123456, 100}}
-
-3> money_laundry:format(oere, {money_laundry, sek, {rational, 123456, 100}}).
-4> <<"123456">>
+1> Money = money_laundry:new(<<"1234,56">>, <<"SEK">>).
+{money_laundry,sek,{rational,30864,25,4}}
+2> money_laundry:format(oere, Money).
+<<"123456">>
+3> money_laundry:format(decimal, Money).
+<<"1234.56">>
 ```
 
 ## Testing
