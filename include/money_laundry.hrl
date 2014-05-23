@@ -1,4 +1,3 @@
-%%-*- mode: erlang -*-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Copyright (c) 2012-2014 Kivra
 %%%
@@ -17,13 +16,32 @@
 %%% @doc Money Laundry. Monetary parsing and formatting
 %%% @end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-{application, money_laundry,
-    [ {description, "Monetary parsing and formatting"}
-    , {vsn,          "0.0.2"}
-    , {registered,   []}
-    , {applications, [ kernel
-                     , stdlib
-                     ]}
-    , {env,          []}
-    , {modules,      []}
- ]}.
+
+%%%_* Header ===========================================================
+-ifndef(__MONEY_LAUNDRY_HRL).
+-define(__MONEY_LAUNDRY_HRL, true).
+
+%%%_ * Types -----------------------------------------------------------
+-record(money_laundry,
+          { currency=error('no_currency') :: money_laundry:currency_atom()
+          , rational=error('no_rational') :: rational:rational()
+          }).
+
+-record(rational,
+          { numerator=error('no_numerator')  :: integer()
+          , denom=error('no_demoninator')    :: pos_integer()
+          , decfact=error('no_decmalfactor') :: pos_integer()
+          }).
+
+-record(decimal,
+          { numerator=error('no_numerator')  :: integer()
+          , denom=error('no_demoninator')    :: pos_integer()
+          }).
+
+%%%_* Footer ===========================================================
+-endif. %include guard
+
+%%% Local Variables:
+%%% allout-layout: t
+%%% erlang-indent-level: 4
+%%% End:

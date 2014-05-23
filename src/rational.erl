@@ -1,30 +1,48 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Copyright (c) 2012-2014 Kivra
+%%%
+%%% Permission to use, copy, modify, and/or distribute this software for any
+%%% purpose with or without fee is hereby granted, provided that the above
+%%% copyright notice and this permission notice appear in all copies.
+%%%
+%%% THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+%%% WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+%%% MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+%%% ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+%%% WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+%%% ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+%%% OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+%%%
+%%% @doc Functions to handle various conversions to and from rational
+%%% @end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%_* Module declaration ===============================================
 -module(rational).
 
--export([
-         from_string/1
-         ,to_decimal_fraction/1
-         ,numerator/1
-         ,denominator/1
-         ,is_rational/1
-        ]).
+%%%_* Includes =========================================================
+-include("money_laundry.hrl").
 
+%%%_* Exports ==========================================================
+%%%_ * API -------------------------------------------------------------
+-export([from_string/1]).
+-export([to_decimal_fraction/1]).
+-export([numerator/1]).
+-export([denominator/1]).
+-export([is_rational/1]).
 
--ifdef(TEST).
--include_lib("eunit/include/eunit.hrl").
--endif.
+-export_type([rational/0]).
+-export_type([decimal/0]).
 
--export_type([
-              rational/0
-              ,decimal/0
-             ]).
+%%%_ * Types -----------------------------------------------------------
+-type rational() :: #rational{}.
+-type decimal()  :: #decimal{}.
 
--type rational() :: {rational, integer(), pos_integer(), pos_integer()}.
--type decimal() :: {decimal, integer(), pos_integer()}.
-
+%%%_* Code =============================================================
+%%%_ * API -------------------------------------------------------------
 %% @doc Given a decimal as a string, the term representing the rational
-%% number is returned in this module's normalized form.
--spec from_string(Amount) -> rational() when
-      Amount :: binary() | string().
+%%      number is returned in this module's normalized form.
+-spec from_string(binary() | string()) -> rational().
 from_string(Amount) when is_binary(Amount)           ->
     from_string(binary_to_list(Amount));
 from_string(StringAmount) when is_list(StringAmount) ->
@@ -42,7 +60,8 @@ from_string(StringAmount) when is_list(StringAmount) ->
         case re:run(Amount, RE, [{capture, all_but_first, list}]) of
             %% Integer starts with minus sign
             {match, [[$-|_] = Integer, Fraction]} ->
-                %% Denominator is a power of 10 here, but not necessarily elsewhere.
+                %% Denominator is a power of 10 here,
+                %%  but not necessarily elsewhere.
                 Denominator1 = round(math:pow(10, length(Fraction))),
                 Numerator1 =
                     list_to_integer(Integer) * Denominator1 -
@@ -64,54 +83,45 @@ from_string(StringAmount) when is_list(StringAmount) ->
                     list_to_integer(Integer)*Denominator1,
                 {Numerator1, Denominator1}
         end,
-        normalize({rational, Numerator, Denominator, 1}).
+    normalize(#rational{numerator=Numerator, denom=Denominator, decfact=1}).
 
 
 %% @doc Given a rational number in this module's normalized form,
-%% a decimal fraction is returned.
+%%      a decimal fraction is returned.
 -spec to_decimal_fraction(rational()) -> decimal().
-to_decimal_fraction({rational, Numerator, Denominator, DecimalFactor}) ->
-    {decimal, Numerator*DecimalFactor, Denominator*DecimalFactor}.
+to_decimal_fraction(#rational{numerator=Num, denom=Denom, decfact=DecFact}) ->
+    #decimal{numerator=Num*DecFact, denom=Denom*DecFact}.
 
--spec numerator(Amount) -> integer() when
-      Amount :: rational() | decimal().
-numerator({decimal, Numerator, _}) ->
-    Numerator;
-numerator({rational, Numerator, _, _}) ->
-    Numerator.
+-spec numerator(rational() | decimal())   -> integer().
+numerator(#decimal{numerator=Numerator})  -> Numerator;
+numerator(#rational{numerator=Numerator}) -> Numerator.
 
--spec denominator(Amount) -> integer() when
-      Amount :: rational() | decimal().
-denominator({decimal, _, Denominator}) ->
-    Denominator;
-denominator({rational, _, Denominator, _}) ->
-    Denominator.
+-spec denominator(rational() | decimal()) -> integer().
+denominator(#decimal{denom=Denominator})  -> Denominator;
+denominator(#rational{denom=Denominator}) -> Denominator.
 
 %% @doc check if the input is a rational()
 -spec is_rational(any()) -> boolean().
-is_rational({rational, Numerator, Denominator, DecimalFactor}) when
-        is_integer(Numerator),
-        is_integer(Denominator),
-        Denominator > 0,
-        is_integer(DecimalFactor),
-        DecimalFactor > 0 ->
+is_rational(#rational{numerator=Num, denom=Denom, decfact=DecFact}) when
+        is_integer(Num),
+        is_integer(Denom),
+        Denom > 0,
+        is_integer(DecFact),
+        DecFact > 0 ->
     true;
-is_rational(_) ->
-    false.
+is_rational(_) -> false.
 
-%%==============================================================================
-%% internal
-
+%%%_* Private functions ================================================
 trim_whitespace(Input) -> re:replace(Input, "\\s+", "", [global]).
 
-%% Assumes a decimal fraction as imput
-normalize({rational, Numerator, Denominator, 1}) ->
+%% @doc Assumes a decimal fraction as imput
+normalize(#rational{numerator=Num, denom=Denom, decfact=1}) ->
     %% List fold over normalize functions might be nicer
-    GCD = case gcd(Numerator, Denominator) of
-              Integer when Integer < 0 -> -Integer;
-              Integer -> Integer
+    GCD = case gcd(Num, Denom) of
+              Int when Int < 0 -> -Int;
+              Int              -> Int
           end,
-    _Norm1 = {rational, Numerator div GCD, Denominator div GCD, GCD}.
+    #rational{numerator=Num div GCD, denom=Denom div GCD, decfact=GCD}.
 
 
 %% Source: http://en.literateprograms.org/Euclidean_algorithm_(Erlang)
@@ -119,27 +129,28 @@ normalize({rational, Numerator, Denominator, 1}) ->
 gcd(A, 0) -> A;
 gcd(A, B) -> gcd(B, A rem B).
 
-%%==============================================================================
 
+%%%_* Tests ============================================================
 -ifdef(TEST).
+-include_lib("eunit/include/eunit.hrl").
 
 from_string_test_() ->
     FromStringCases =
-        [{"0", 0, 1, 1},
-         {"0,0", 0, 1, 1},
-         {"1", 1, 1, 1},
-         {"1234567890,987654321", 1234567890987654321, 1000000000, 1},
-         {"1,00", 1, 1, 1},
-         {"-1", -1, 1, 1},
-         {"-1,1", -11, 10, 1},
-         {"0,5", 1, 2, 5},
-         {"3,142", 1571, 500, 2},
-         {"144,144", 18018, 125, 8},
-         {"0.5", 1, 2, 5},
-         {"3.142", 1571, 500, 2},
-         {"144.144", 18018, 125, 8},
-         {"1 9 0", 190, 1, 1},
-         {"190", 190, 1, 1}
+        [ {"0",                    0,                   1,          1}
+        , {"0,0",                  0,                   1,          1}
+        , {"1",                    1,                   1,          1}
+        , {"1234567890,987654321", 1234567890987654321, 1000000000, 1}
+        , {"1,00",                 1,                   1,          1}
+        , {"-1",                   -1,                  1,          1}
+        , {"-1,1",                 -11,                 10,         1}
+        , {"0,5",                  1,                   2,          5}
+        , {"3,142",                1571,                500,        2}
+        , {"144,144",              18018,               125,        8}
+        , {"0.5",                  1,                   2,          5}
+        , {"3.142",                1571,                500,        2}
+        , {"144.144",              18018,               125,        8}
+        , {"1 9 0",                190,                 1,          1}
+        , {"190",                  190,                 1,          1}
         ],
     [from_string_test_fun(String, Numer, Denom, DecFac)
      || {String, Numer, Denom, DecFac} <- FromStringCases].
@@ -152,16 +163,15 @@ from_string_test_fun(String, Numer, Denom, DecFac) ->
 
 to_decimal_fraction_test_() ->
     ToDecFracCases =
-        [
-         {"1,00", 1, 1},
-         {"-1", -1, 1},
-         {"-1,1", -11, 10},
-         {"0,5", 5, 10},
-         {"3,142", 3142, 1000},
-         {"-12,345", -12345, 1000},
-         {"144,144", 144144, 1000},
-         {"0,25", 25, 100},
-         {"-0,25", -25, 100}
+        [ {"1,00",    1,      1}
+        , {"-1",      -1,     1}
+        , {"-1,1",    -11,    10}
+        , {"0,5",     5,      10}
+        , {"3,142",   3142,   1000}
+        , {"-12,345", -12345, 1000}
+        , {"144,144", 144144, 1000}
+        , {"0,25",    25,     100}
+        , {"-0,25",   -25,    100}
         ],
     [to_dec_frac_test_fun(String, Numer, Denom)
      || {String, Numer, Denom} <- ToDecFracCases].
@@ -186,3 +196,9 @@ is_rational_test_() ->
     ].
 
 -endif.
+
+%%%_* Emacs ============================================================
+%%% Local Variables:
+%%% allout-layout: t
+%%% erlang-indent-level: 4
+%%% End:

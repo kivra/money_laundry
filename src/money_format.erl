@@ -1,4 +1,3 @@
-%%-*- mode: erlang -*-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Copyright (c) 2012-2014 Kivra
 %%%
@@ -14,16 +13,30 @@
 %%% ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 %%% OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 %%%
-%%% @doc Money Laundry. Monetary parsing and formatting
+%%% @doc Money format behaviour.
 %%% @end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-{application, money_laundry,
-    [ {description, "Monetary parsing and formatting"}
-    , {vsn,          "0.0.2"}
-    , {registered,   []}
-    , {applications, [ kernel
-                     , stdlib
-                     ]}
-    , {env,          []}
-    , {modules,      []}
- ]}.
+
+%%%_* Module declaration ===============================================
+-module(money_format).
+
+%%%_* Exports ==========================================================
+-export_type([format/0]).
+
+%%%_ * Types -----------------------------------------------------------
+-type format()        :: oere | decimal.
+
+%%%_* Behaviour ========================================================
+-callback format(format(), money_laundry:laundry_money()) -> binary().
+
+%%%_* Tests ============================================================
+-ifdef(TEST).
+-include_lib("eunit/include/eunit.hrl").
+
+-endif.
+
+%%%_* Emacs ============================================================
+%%% Local Variables:
+%%% allout-layout: t
+%%% erlang-indent-level: 4
+%%% End:

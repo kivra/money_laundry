@@ -1,17 +1,17 @@
 PROJECT = money_laundry
 
 # Options
-ERLC_OPTS = +debug_info +nowarn_shadow_vars +warnings_as_errors
+COMPILE_FIRST = money_format
+EUNIT_OPTS    = [verbose]
+ERLC_OPTS    ?=  -Werror +debug_info +warn_export_all +warn_export_vars \
+                 +warn_shadow_vars +warn_obsolete_guard -DS2_USE_LAGER \
+                 #+warn_missing_spec
 TEST_DEPS = meck
 
 # Dependencies
-dep_meck = git://github.com/kivra/stdlib2.git 0.8.1
+dep_meck = git@github.com:eproxus/meck.git 0.8.2
 
 # Standard targets
 include erlang.mk
-
-.PHONY: eunit
-eunit:
-	erl -noshell -pa ebin -eval 'eunit:test("ebin", [verbose])' -s init stop
 
 # eof

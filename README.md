@@ -2,7 +2,7 @@ money_laundry
 =============
 
 Erlang Currency and money laundering functions. The rationale behind a custom
-numbers library is to be able to store and process numberic values while only
+numbers library is to be able to store and process numeric values while only
 losing precision when necessary.
 
 ``` erlang
@@ -18,5 +18,5 @@ losing precision when necessary.
 Test with
 
 ```
-make test
+$ make eunit
 ```
