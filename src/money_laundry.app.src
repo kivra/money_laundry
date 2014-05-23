@@ -19,7 +19,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 {application, money_laundry,
     [ {description, "Monetary parsing and formatting"}
-    , {vsn,          "0.0.2"}
+    , {vsn,          "1.0.4"}
     , {registered,   []}
     , {applications, [ kernel
                      , stdlib

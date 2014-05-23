@@ -112,8 +112,8 @@ format_oere_test_() ->
          ,{<<"10,10">>,  <<"1010">>}
          ,{<<"1234">>,   <<"123400">>}
          ,{<<"-0,25">>,  <<"-25">>}    %% Found by proper:check_specs/1:
-         ,{<<"20.01">>,  <<"2001">>}   %% oere,{money_laundry,sek,{rational,-1,4}}
-        ],
+         ,{<<"20.01">>,  <<"2001">>}   %% oere,{ money_laundry
+        ],                             %%      ,sek,{rational,-1,4} }
     [format_oere_test_fun(String, Expected) || {String, Expected} <- Cases].
 
 format_oere_test_fun(String, Expected) ->

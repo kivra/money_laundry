@@ -25,11 +25,20 @@
 
 %%%_* Exports ==========================================================
 %%%_ * API -------------------------------------------------------------
--export([from_string/1]).
--export([to_decimal_fraction/1]).
+-export([new/1]).
+-export([new/2]).
+-export([new/3]).
+-export([inv/1]).
+-export([neg/1]).
+-export([add/2]).
+-export([sub/2]).
+-export([mult/2]).
+-export([divide/2]).
 -export([numerator/1]).
 -export([denominator/1]).
 -export([is_rational/1]).
+-export([from_string/1]).
+-export([to_decimal_fraction/1]).
 
 -export_type([rational/0]).
 -export_type([decimal/0]).
@@ -40,6 +49,79 @@
 
 %%%_* Code =============================================================
 %%%_ * API -------------------------------------------------------------
+%% @doc Create a new rational number
+-spec new(integer() | rational())          -> rational().
+-spec new(integer(), integer())            -> rational().
+-spec new(integer(), integer(), integer()) -> rational().
+new(Num) when is_integer(Num)                               -> new(Num, 1);
+new(#rational{numerator=Num, denom=Denom, decfact=Decfact}) ->
+    new(Num, Denom, Decfact).
+new(Num, Denom)          -> new(Num, Denom, 1).
+new(Num, Denom, Decfact) ->
+    GCD = gcd(Num, Denom),
+    #rational{numerator=Num div GCD, denom=Denom div GCD, decfact=Decfact}.
+
+%% @doc Inverse a rational
+-spec inv(integer() | rational()) -> rational().
+inv(N) -> A = new(N), new(A#rational.numerator, A#rational.denom).
+
+%% @doc Negate a rational
+-spec neg(integer() | rational()) -> rational().
+neg(N) -> A = new(N), new(-A#rational.numerator, A#rational.denom).
+
+%% @doc multiply one rational with another
+-spec mult(integer() | rational(), integer() | rational()) -> rational().
+mult(X, Y) ->
+    A     = new(X),
+    B     = new(Y),
+    Num   = A#rational.numerator * B#rational.numerator,
+    Denom = A#rational.denom * B#rational.denom,
+    Gcd   = gcd(Num, Denom),
+    new(Num div Gcd, Denom div Gcd).
+
+%% @doc divide one rational with another
+-spec divide(integer() | rational(),integer() | rational()) -> rational().
+divide(X, Y) -> mult(X, inv(Y)).
+
+%% @doc add one rational to another
+-spec add(integer() | rational(),integer() | rational()) -> rational().
+add(X, Y) ->
+    A   = new(X),
+    B   = new(Y),
+    Lcm = lcm(A#rational.denom, B#rational.denom),
+    Num = A#rational.numerator * (Lcm div A#rational.denom) +
+          B#rational.numerator * (Lcm div B#rational.denom),
+    new(Num, Lcm).
+
+%% @doc subtract one rational from another
+-spec sub(integer() | rational(),integer() | rational()) -> rational().
+sub(X, Y) -> add(X, neg(Y)).
+
+%% @doc Given a rational number in this module's normalized form,
+%%      a decimal fraction is returned.
+-spec to_decimal_fraction(rational()) -> decimal().
+to_decimal_fraction(#rational{numerator=Num, denom=Denom, decfact=DecFact}) ->
+    #decimal{numerator=Num*DecFact, denom=Denom*DecFact}.
+
+-spec numerator(rational() | decimal())   -> integer().
+numerator(#decimal{numerator=Numerator})  -> Numerator;
+numerator(#rational{numerator=Numerator}) -> Numerator.
+
+-spec denominator(rational() | decimal()) -> integer().
+denominator(#decimal{denom=Denominator})  -> Denominator;
+denominator(#rational{denom=Denominator}) -> Denominator.
+
+%% @doc check if the input is a rational()
+-spec is_rational(any()) -> boolean().
+is_rational(#rational{numerator=Num, denom=Denom, decfact=DecFact}) when
+        is_integer(Num),
+        is_integer(Denom),
+        Denom > 0,
+        is_integer(DecFact),
+        DecFact > 0 ->
+    true;
+is_rational(_) -> false.
+
 %% @doc Given a decimal as a string, the term representing the rational
 %%      number is returned in this module's normalized form.
 -spec from_string(binary() | string()) -> rational().
@@ -83,52 +165,19 @@ from_string(StringAmount) when is_list(StringAmount) ->
                     list_to_integer(Integer)*Denominator1,
                 {Numerator1, Denominator1}
         end,
-    normalize(#rational{numerator=Numerator, denom=Denominator, decfact=1}).
-
-
-%% @doc Given a rational number in this module's normalized form,
-%%      a decimal fraction is returned.
--spec to_decimal_fraction(rational()) -> decimal().
-to_decimal_fraction(#rational{numerator=Num, denom=Denom, decfact=DecFact}) ->
-    #decimal{numerator=Num*DecFact, denom=Denom*DecFact}.
-
--spec numerator(rational() | decimal())   -> integer().
-numerator(#decimal{numerator=Numerator})  -> Numerator;
-numerator(#rational{numerator=Numerator}) -> Numerator.
-
--spec denominator(rational() | decimal()) -> integer().
-denominator(#decimal{denom=Denominator})  -> Denominator;
-denominator(#rational{denom=Denominator}) -> Denominator.
-
-%% @doc check if the input is a rational()
--spec is_rational(any()) -> boolean().
-is_rational(#rational{numerator=Num, denom=Denom, decfact=DecFact}) when
-        is_integer(Num),
-        is_integer(Denom),
-        Denom > 0,
-        is_integer(DecFact),
-        DecFact > 0 ->
-    true;
-is_rational(_) -> false.
+    new(Numerator, Denominator).
 
 %%%_* Private functions ================================================
 trim_whitespace(Input) -> re:replace(Input, "\\s+", "", [global]).
 
-%% @doc Assumes a decimal fraction as imput
-normalize(#rational{numerator=Num, denom=Denom, decfact=1}) ->
-    %% List fold over normalize functions might be nicer
-    GCD = case gcd(Num, Denom) of
-              Int when Int < 0 -> -Int;
-              Int              -> Int
-          end,
-    #rational{numerator=Num div GCD, denom=Denom div GCD, decfact=GCD}.
-
-
-%% Source: http://en.literateprograms.org/Euclidean_algorithm_(Erlang)
+%% @doc Compute the greatest common divisor
+%%      https://en.wikipedia.org/wiki/Euclidean_algorithm
 -spec gcd(integer(), integer()) -> integer().
-gcd(A, 0) -> A;
+gcd(A, 0) when A < 0 -> -A;
+gcd(A, 0)            -> A;
 gcd(A, B) -> gcd(B, A rem B).
 
+lcm(A, B) -> (A*B) div gcd(A, B).
 
 %%%_* Tests ============================================================
 -ifdef(TEST).
