@@ -26,6 +26,7 @@
 %%%_* Exports ==========================================================
 %%%_ * API -------------------------------------------------------------
 -export([new/2]).
+-export([new/3]).
 -export([format/2]).
 -export([currency_code/1]).
 -export([checkspecs_test/1]).
@@ -48,9 +49,17 @@
 %%      It also assumes the amount is well-formed, ie ,13 is not 0,13,
 %%      but money_laundry will not necessarily do anything good with it.
 -spec new(binary(), currency_code()) -> laundry_money().
-new(Amount, Currency) ->
+new(Amount, Currency)          -> new(Amount, Currency, decimal).
+
+%% @doc Will create a new money_laundry object assuming specified input
+%%      format and converting to an accurate representation
+-spec new(binary(), currency_code(), money_format:format()) -> laundry_money().
+new(Amount, Currency, decimal) ->
     #money_laundry{ currency=currency_to_internal(Currency)
-                  , rational=rational:from_string(Amount) }.
+                  , rational=rational:from_string(Amount) };
+new(Amount, Currency, oere)    ->
+    #money_laundry{ currency=currency_to_internal(Currency)
+                  , rational=rational:divide(rational:from_string(Amount),100)}.
 
 %% @doc Returns a string representation of the amount, defined by the given
 %%      format. Oere returns an integer for SEK amounts. decimal returns a

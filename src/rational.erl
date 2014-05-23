@@ -27,7 +27,6 @@
 %%%_ * API -------------------------------------------------------------
 -export([new/1]).
 -export([new/2]).
--export([new/3]).
 -export([inv/1]).
 -export([neg/1]).
 -export([add/2]).
@@ -52,18 +51,15 @@
 %% @doc Create a new rational number
 -spec new(integer() | rational())          -> rational().
 -spec new(integer(), integer())            -> rational().
--spec new(integer(), integer(), integer()) -> rational().
-new(Num) when is_integer(Num)                               -> new(Num, 1);
-new(#rational{numerator=Num, denom=Denom, decfact=Decfact}) ->
-    new(Num, Denom, Decfact).
-new(Num, Denom)          -> new(Num, Denom, 1).
-new(Num, Denom, Decfact) ->
+new(Num) when is_integer(Num) -> new(Num, 1);
+new(#rational{}=Rational)     -> Rational.
+new(Num, Denom) ->
     GCD = gcd(Num, Denom),
-    #rational{numerator=Num div GCD, denom=Denom div GCD, decfact=Decfact}.
+    #rational{numerator=Num div GCD, denom=Denom div GCD, decfact=GCD}.
 
 %% @doc Inverse a rational
 -spec inv(integer() | rational()) -> rational().
-inv(N) -> A = new(N), new(A#rational.numerator, A#rational.denom).
+inv(N) -> A = new(N), new(A#rational.denom, A#rational.numerator).
 
 %% @doc Negate a rational
 -spec neg(integer() | rational()) -> rational().

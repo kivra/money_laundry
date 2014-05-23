@@ -32,13 +32,13 @@
 %%%_ * API -------------------------------------------------------------
 %% @doc Keep it undefined for fractions with denominators > 100 because that
 %%      means losing precision in an öre integer.
-format(oere, #money_laundry{rational={decimal, Num, 100}}) ->
+format(oere, #money_laundry{rational=#decimal{numerator=Num, denom=100}}) ->
     integer_to_binary(Num);
-format(oere, #money_laundry{rational={decimal, Num, 10}}) ->
+format(oere, #money_laundry{rational=#decimal{numerator=Num, denom=10}}) ->
     integer_to_binary(Num*10);
-format(oere, #money_laundry{rational={decimal, Num, 1}}) ->
+format(oere, #money_laundry{rational=#decimal{numerator=Num, denom=1}}) ->
     integer_to_binary(Num*100);
-format(decimal, #money_laundry{rational={decimal, Num, Den}}) ->
+format(decimal, #money_laundry{rational=#decimal{numerator=Num, denom=Den}}) ->
     Fract      = Num rem Den,
     FractWidth = trunc(math:log10(Den)),
     Integer    = round((Num - Fract)/Den),
