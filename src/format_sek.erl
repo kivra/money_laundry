@@ -39,13 +39,15 @@ format(oere, #money_laundry{rational=#decimal{numerator=Num, denom=10}}) ->
 format(oere, #money_laundry{rational=#decimal{numerator=Num, denom=1}}) ->
     integer_to_binary(Num*100);
 format(decimal, #money_laundry{rational=#decimal{numerator=Num, denom=Den}}) ->
-    trim(
-      iolist_to_binary(
-        io_lib:format( "~-10."++integer_to_list(round(math:log10(Den)))++"f"
-                     , [Num/Den] ))).
-
-%%%_* Private functions ================================================
-trim(B) -> re:replace(B, "\\s", "", [global, {return, binary}]).
+    Fract      = Num rem Den,
+    FractWidth = round(math:log10(Den)),
+    Integer    = round((Num - Fract)/Den),
+    case FractWidth of
+        0 -> iolist_to_binary(io_lib:format("~B", [Integer]));
+        _ -> iolist_to_binary(
+                 io_lib:format( "~B.~"++integer_to_list(FractWidth)++"..0B"
+                              , [Integer, Fract]) )
+    end.
 
 %%%_* Tests ============================================================
 -ifdef(TEST).
