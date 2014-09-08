@@ -29,8 +29,9 @@
 -export([new/3]).
 -export([format/2]).
 -export([currency_code/1]).
--export([checkspecs_test/1]).
 -export([is_money_laundry/1]).
+-export([encode/1]).
+-export([decode/1]).
 
 -export_type([laundry_money/0]).
 -export_type([currency_atom/0]).
@@ -87,19 +88,27 @@ is_money_laundry(_)                             -> false.
 currency_code(#money_laundry{currency=CurrencyTerm}) ->
     internal_to_currency(CurrencyTerm).
 
-%% @doc This is just a quick way to let quickcheck try and break money_laundry
-%%      without writing properties for it yet.
--spec checkspecs_test(float()) -> float().
-checkspecs_test(Float) ->
-    BinIn = iolist_to_binary(io_lib:format("~p", [Float])),
-    BinOut = money_laundry:format(decimal, money_laundry:new(BinIn, <<"SEK">>)),
-    FloatOut = list_to_float(binary_to_list(BinOut)),
-    case abs(FloatOut - Float) < 0.000001 of
-        true  -> FloatOut;
-        false ->
-            io:format("Not close enough:~n~p~n~p~n", [Float, FloatOut]),
-            Float = FloatOut
-    end.
+encode(Data) ->
+    {<<"currency">>,    Curr} = lists:keyfind(<<"currency">>,    1, Data),
+    {<<"rational">>,    Rat}  = lists:keyfind(<<"rational">>,    1, Data),
+    {<<"denominator">>, Den}  = lists:keyfind(<<"denominator">>, 1, Rat),
+    {<<"numerator">>,   Num}  = lists:keyfind(<<"numerator">>,   1, Rat),
+    {<<"decimal_fraction_factor">>, DecFact} =
+                        lists:keyfind(<<"decimal_fraction_factor">>, 1, Rat),
+    {ok, #money_laundry{ currency=currency_to_internal(Curr)
+                       , rational=#rational{ numerator = Num
+                                           , denom     = Den
+                                           , decfact   = DecFact
+                                           } }}.
+
+decode(#money_laundry{ rational=#rational{} = Rat } = Data) ->
+    {ok, [ {<<"currency">>, currency_code(Data)}
+         , {<<"rational">>,
+               [ {<<"numerator">>,               Rat#rational.numerator}
+               , {<<"denominator">>,             Rat#rational.denom}
+               , {<<"decimal_fraction_factor">>, Rat#rational.decfact}
+               ] }
+         ]}.
 
 %%%_* Private functions ================================================
 currency_to_internal(<<"SEK">>) -> sek.
@@ -113,6 +122,14 @@ internal_to_currency(sek)       -> <<"SEK">>.
 %% are as expected.
 new_test() ->
     {money_laundry, sek, _} = money_laundry:new(<<"1234,56">>, <<"SEK">>).
+
+encode_test() ->
+    A = [ {<<"currency">>, <<"SEK">>}
+        , {<<"rational">>, [ {<<"numerator">>,              554}
+                           , {<<"denominator">>,            1}
+                           , {<<"decimal_fraction_factor">>,1}
+                           ]}],
+    ?assert({ok, A} == decode(element(2, encode(A)))).
 
 format_oere_test_() ->
     Cases =
