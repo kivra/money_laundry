@@ -33,6 +33,7 @@
 -export([sub/2]).
 -export([mult/2]).
 -export([divide/2]).
+-export([comp/2]).
 -export([numerator/1]).
 -export([denominator/1]).
 -export([is_rational/1]).
@@ -74,6 +75,19 @@ mult(X, Y) ->
     Denom = A#rational.denom * B#rational.denom,
     Gcd   = gcd(Num, Denom),
     new(Num div Gcd, Denom div Gcd).
+
+-spec comp(integer() | rational(), integer() | rational()) -> lt | gt | eq.
+comp(X, Y) ->
+    A     = new(X),
+    B     = new(Y),
+    NumA  = A#rational.numerator * B#rational.denom,
+    NumB  = B#rational.numerator * A#rational.denom,
+    if
+        NumA =:= NumB -> eq;
+        NumA <   NumB -> lt;
+        NumA >   NumB -> gt;
+        true          -> erlang:exit({X,Y})
+    end.
 
 %% @doc divide one rational with another
 -spec divide(integer() | rational(),integer() | rational()) -> rational().
@@ -178,6 +192,13 @@ lcm(A, B) -> (A*B) div gcd(A, B).
 %%%_* Tests ============================================================
 -ifdef(TEST).
 -include_lib("eunit/include/eunit.hrl").
+
+basic_test() ->
+    ?assertEqual(rational:comp(rational:new(15), 16), lt),
+    ?assertEqual(rational:comp(rational:new(15), rational:new(16)), lt),
+    ?assertEqual(rational:comp(18, 16), gt),
+    ?assertEqual(rational:comp(rational:new(15), 15), eq),
+    true.
 
 from_string_test_() ->
     FromStringCases =
