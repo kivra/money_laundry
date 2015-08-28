@@ -9,7 +9,7 @@ ERLC_OPTS    ?=  -Werror +debug_info +warn_export_all +warn_export_vars \
 TEST_DEPS = meck
 
 # Dependencies
-dep_meck = git@github.com:eproxus/meck.git 0.8.2
+dep_meck = git@github.com:kivra/meck.git 0.8.2
 
 # Standard targets
 include erlang.mk
