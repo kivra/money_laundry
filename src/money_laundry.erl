@@ -32,6 +32,7 @@
 -export([is_money_laundry/1]).
 -export([encode/1]).
 -export([decode/1]).
+-export([comp/1]).
 
 -export_type([laundry_money/0]).
 -export_type([currency_atom/0]).
@@ -109,6 +110,22 @@ decode(#money_laundry{ rational=#rational{} = Rat } = Data) ->
                , {<<"decimal_fraction_factor">>, Rat#rational.decfact}
                ] }
          ]}.
+
+
+comp(#money_laundry{ currency = Curr1, rational=#rational{} = Rat1 },
+     #money_laundry{ currency = Curr2, rational=#rational{} = Rat2 }) ->
+    case Curr1 =:= Curr2 of
+        true ->
+            rational:comp(Rat1, Rat2);
+        false ->
+            undefined
+    end;
+comp(#money_laundry{ rational=#rational{} = Rat }, N) ->
+    rational:comp(Rat, N);
+comp(N, #money_laundry{ rational=#rational{} = Rat }) ->
+    rational:comp(N, Rat);
+comp(N1, N2) ->
+    rational:comp(N1, N2).
 
 %%%_* Private functions ================================================
 currency_to_internal(<<"SEK">>) -> sek.
