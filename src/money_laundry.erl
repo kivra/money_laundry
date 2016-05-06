@@ -32,7 +32,7 @@
 -export([is_money_laundry/1]).
 -export([encode/1]).
 -export([decode/1]).
--export([comp/1]).
+-export([comp/2]).
 
 -export_type([laundry_money/0]).
 -export_type([currency_atom/0]).
@@ -110,7 +110,6 @@ decode(#money_laundry{ rational=#rational{} = Rat } = Data) ->
                , {<<"decimal_fraction_factor">>, Rat#rational.decfact}
                ] }
          ]}.
-
 
 comp(#money_laundry{ currency = Curr1, rational=#rational{} = Rat1 },
      #money_laundry{ currency = Curr2, rational=#rational{} = Rat2 }) ->
