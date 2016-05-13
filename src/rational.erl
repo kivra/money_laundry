@@ -73,8 +73,7 @@ mult(X, Y) ->
     B     = new(Y),
     Num   = A#rational.numerator * B#rational.numerator,
     Denom = A#rational.denom * B#rational.denom,
-    Gcd   = gcd(Num, Denom),
-    new(Num div Gcd, Denom div Gcd).
+    new(Num, Denom).
 
 -spec comp(integer() | rational(), integer() | rational()) -> lt | gt | eq.
 comp(X, Y) ->
@@ -199,6 +198,10 @@ basic_test() ->
     ?assertEqual(rational:comp(18, 16), gt),
     ?assertEqual(rational:comp(rational:new(15), 15), eq),
     true.
+
+divide_test() ->
+    ?assertEqual(#decimal{numerator=48, denom=100},
+                 rational:to_decimal_fraction(rational:divide(48, 100))).
 
 from_string_test_() ->
     FromStringCases =
