@@ -1,6 +1,6 @@
 %%-*- mode: erlang -*-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%% Copyright (c) 2012-2014 Kivra
+%%% Copyright (c) 2012-2016 Kivra
 %%%
 %%% Permission to use, copy, modify, and/or distribute this software for any
 %%% purpose with or without fee is hereby granted, provided that the above
@@ -19,7 +19,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 {application, money_laundry,
     [ {description, "Monetary parsing and formatting"}
-    , {vsn,          "1.0.7"}
+    , {vsn,          "1.1.0"}
     , {registered,   []}
     , {applications, [ kernel
                      , stdlib

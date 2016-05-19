@@ -4,3 +4,6 @@ deps
 *.beam
 *.plt
 ebin
+money_laundry.d
+*.coverdata
+cover

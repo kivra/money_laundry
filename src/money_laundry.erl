@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%% Copyright (c) 2012-2014 Kivra
+%%% Copyright (c) 2012-2016 Kivra
 %%%
 %%% Permission to use, copy, modify, and/or distribute this software for any
 %%% purpose with or without fee is hereby granted, provided that the above
@@ -38,8 +38,8 @@
 -export_type([currency_atom/0]).
 
 %%%_ * Types -----------------------------------------------------------
--type currency_atom() :: sek.
--type currency_code() :: binary().
+-type currency_atom()   :: sek.
+-type currency_code()   :: binary().
 -opaque laundry_money() :: #money_laundry{}.
 
 %%%_* Code =============================================================
@@ -51,7 +51,7 @@
 %%      It also assumes the amount is well-formed, ie ,13 is not 0,13,
 %%      but money_laundry will not necessarily do anything good with it.
 -spec new(binary(), currency_code()) -> laundry_money().
-new(Amount, Currency)          -> new(Amount, Currency, decimal).
+new(Amount, Currency) -> new(Amount, Currency, decimal).
 
 %% @doc Will create a new money_laundry object assuming specified input
 %%      format and converting to an accurate representation
@@ -89,6 +89,7 @@ is_money_laundry(_)                             -> false.
 currency_code(#money_laundry{currency=CurrencyTerm}) ->
     internal_to_currency(CurrencyTerm).
 
+-spec encode(proplists:proplist()) -> {ok, laundry_money()}.
 encode(Data) ->
     {<<"currency">>,    Curr} = lists:keyfind(<<"currency">>,    1, Data),
     {<<"rational">>,    Rat}  = lists:keyfind(<<"rational">>,    1, Data),
@@ -102,6 +103,7 @@ encode(Data) ->
                                            , decfact   = DecFact
                                            } }}.
 
+-spec decode(laundry_money()) -> {ok, proplists:proplist()}.
 decode(#money_laundry{ rational=#rational{} = Rat } = Data) ->
     {ok, [ {<<"currency">>, currency_code(Data)}
          , {<<"rational">>,
@@ -111,13 +113,12 @@ decode(#money_laundry{ rational=#rational{} = Rat } = Data) ->
                ] }
          ]}.
 
+-spec comp(laundry_money(), laundry_money()) -> lt | gt | eq | {error, atom}.
 comp(#money_laundry{ currency = Curr1, rational=#rational{} = Rat1 },
      #money_laundry{ currency = Curr2, rational=#rational{} = Rat2 }) ->
     case Curr1 =:= Curr2 of
-        true ->
-            rational:comp(Rat1, Rat2);
-        false ->
-            undefined
+        true  -> rational:comp(Rat1, Rat2);
+        false -> {error, currency_mismatch}
     end;
 comp(#money_laundry{ rational=#rational{} = Rat }, N) ->
     rational:comp(Rat, N);
