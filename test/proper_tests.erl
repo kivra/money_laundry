@@ -27,23 +27,32 @@
 
 %%%_* Tests ============================================================
 new_test() ->
-    ?assertEqual(true, proper:quickcheck( ?MODULE:prop_new_test()
-                                        , [{to_file, user}, 1000]) ).
+    ?assertEqual(true, proper:quickcheck( ?MODULE:prop_dec()
+                                        , [{to_file, user}, 10000]) ).
 
-prop_new_test() ->
+prop_dec() ->
     ?FORALL(Val, decimal_val(),
       begin
-        TestVal =
-          case binary:split(Val, <<".">>) of
-              [Int, <<"0">>] -> Int;
-              _              -> Val
+        [Int, Dec] = binary:split(Val, <<".">>),
+        TestVal    =
+          case { list_to_integer(binary_to_list(Int)) == 0
+               , list_to_integer(binary_to_list(Dec)) == 0} of
+              {true, true}   -> <<"0">>;
+              {true, false}  -> strip_padded_zeroes(Val);
+              {false, true}  -> Int;
+              {false, false} -> strip_padded_zeroes(Val)
           end,
         TestVal =:= money_laundry:format( decimal
                                         , money_laundry:new(TestVal, <<"SEK">>))
       end).
 
+strip_padded_zeroes(Val) ->
+    list_to_binary(string:strip(binary_to_list(Val), right, $0)).
+
 decimal_val() ->
-    ?LET(X, float(), iolist_to_binary(io_lib:format("~w", [X]))).
+    ?LET( {Precision, X}
+        , {pos_integer(), float()}
+        , iolist_to_binary(io_lib:format("~."++integer_to_list(Precision)++"f", [X])) ).
 
 %%%_* Emacs ============================================================
 %%% Local Variables:
