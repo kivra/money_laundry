@@ -13,27 +13,37 @@
 %%% ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 %%% OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 %%%
-%%% @doc Money format behaviour.
+%%% @doc Money Laundry. Monetary parsing and formatting
 %%% @end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%_* Module declaration ===============================================
--module(money_format).
+-module(proper_tests).
 
-%%%_* Exports ==========================================================
--export_type([format/0]).
-
-%%%_ * Types -----------------------------------------------------------
--type format()        :: oere | decimal.
-
-%%%_* Behaviour ========================================================
--callback format(format(), money_laundry:laundry_money()) -> binary().
-
-%%%_* Tests ============================================================
--ifdef(TEST).
+%%%_* Includes =========================================================
+-include("money_laundry.hrl").
+-include_lib("proper/include/proper.hrl").
 -include_lib("eunit/include/eunit.hrl").
 
--endif.
+%%%_* Tests ============================================================
+new_test() ->
+    ?assertEqual(true, proper:quickcheck( ?MODULE:prop_new_test()
+                                        , [{to_file, user}, 1000]) ).
+
+prop_new_test() ->
+    ?FORALL(Val, decimal_val(),
+      begin
+        TestVal =
+          case binary:split(Val, <<".">>) of
+              [Int, <<"0">>] -> Int;
+              _              -> Val
+          end,
+        TestVal =:= money_laundry:format( decimal
+                                        , money_laundry:new(TestVal, <<"SEK">>))
+      end).
+
+decimal_val() ->
+    ?LET(X, float(), iolist_to_binary(io_lib:format("~w", [X]))).
 
 %%%_* Emacs ============================================================
 %%% Local Variables:

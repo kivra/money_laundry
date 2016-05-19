@@ -1,17 +1,17 @@
 PROJECT = money_laundry
 
-# Options
+# Options ##############################################################
 COMPILE_FIRST = money_format
+COVER         = 1
 EUNIT_OPTS    = [verbose]
 ERLC_OPTS    ?=  -Werror +debug_info +warn_export_all +warn_export_vars \
                  +warn_shadow_vars +warn_obsolete_guard -DS2_USE_LAGER \
-                 #+warn_missing_spec
-TEST_DEPS = meck
+                 +warn_missing_spec
 
-# Dependencies
-dep_meck = git@github.com:kivra/meck.git 0.8.2
+# Test Dependencies ####################################################
+TEST_DEPS = meck proper
 
-# Standard targets
+# Standard targets #####################################################
 include erlang.mk
 
 # eof
