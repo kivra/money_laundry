@@ -30,29 +30,7 @@
 
 %%%_* Code =============================================================
 %%%_ * API -------------------------------------------------------------
-%% @doc Keep it undefined for fractions with denominators > 100 because that
-%%      means losing precision in an öre integer.
--spec format(money_format:format(), rational:rational()) -> binary().
-format(oere, #money_laundry{rational=#decimal{numerator=Num, denom=100}}) ->
-    integer_to_binary(Num);
-format(oere, #money_laundry{rational=#decimal{numerator=Num, denom=10}}) ->
-    integer_to_binary(Num*10);
-format(oere, #money_laundry{rational=#decimal{numerator=Num, denom=1}}) ->
-    integer_to_binary(Num*100);
-format(decimal, #money_laundry{rational=#decimal{numerator=Num, denom=Den}}) ->
-    Sign       = case Num < 0 of
-                     true  -> "-";
-                     false -> ""
-                 end,
-    Fract      = Num rem Den,
-    FractWidth = round(math:log10(Den)),
-    Integer    = round((Num - Fract)/Den),
-    case FractWidth of
-        0 -> iolist_to_binary(io_lib:format("~B", [Integer]));
-        _ -> iolist_to_binary(
-                 io_lib:format( "~s~B.~"++integer_to_list(FractWidth)++"..0B"
-                              , [Sign, abs(Integer), abs(Fract)]) )
-    end.
+format(Format, Money) -> money_format:format(Format, Money).
 
 %%%_* Tests ============================================================
 -ifdef(TEST).
