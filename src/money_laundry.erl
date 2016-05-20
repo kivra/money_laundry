@@ -38,7 +38,7 @@
 -export_type([currency_atom/0]).
 
 %%%_ * Types -----------------------------------------------------------
--type currency_atom()   :: sek.
+-type currency_atom()   :: sek | atom(). %% Currently only 'sek' supported
 -type currency_code()   :: binary().
 -opaque laundry_money() :: #money_laundry{}.
 

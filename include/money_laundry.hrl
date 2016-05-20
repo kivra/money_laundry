@@ -25,6 +25,7 @@
 -record(money_laundry,
           { currency=error('no_currency') :: money_laundry:currency_atom()
           , rational=error('no_rational') :: rational:rational()
+                                           | rational:decimal()
           }).
 
 -record(rational,
