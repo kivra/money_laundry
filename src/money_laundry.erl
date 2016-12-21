@@ -70,14 +70,8 @@ new(Amount, Currency, oere)    ->
 %%      proper:check_specs/1 quickly finds examples that don't work, e.g.
 %%      [oere,{money_laundry,sek,{rational,1,3}}] which is infinitely repeating.
 -spec format(money_format:format(), laundry_money()) -> binary().
-format(Format, #money_laundry{rational={rational,_,_,_}=Amount}=ML) ->
-    format( Format
-          , ML#money_laundry{rational=rational:to_decimal_fraction(Amount)} );
-
-%% @doc Format a money_laundry representation using the given format for
-%%      the current currency
 format(Format, #money_laundry{currency=sek}=ML) ->
-    format_sek:format(Format, ML).
+    format_sek:format(Format, ensure_decimal(ML)).
 
 %% @doc Checks if the input seems to be a valid money_laundry term
 -spec is_money_laundry(any()) -> boolean().
@@ -130,6 +124,14 @@ comp(N1, N2) ->
 %%%_* Private functions ================================================
 currency_to_internal(<<"SEK">>) -> sek.
 internal_to_currency(sek)       -> <<"SEK">>.
+
+ensure_decimal(#money_laundry{rational=Amount}=ML) ->
+     case rational:is_rational(Amount) of
+         true ->
+             ML#money_laundry{rational=rational:to_decimal_fraction(Amount)};
+         false ->
+             ML
+     end.
 
 %%%_* Tests ============================================================
 -ifdef(TEST).
