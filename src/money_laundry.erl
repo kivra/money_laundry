@@ -38,7 +38,7 @@
 -export_type([currency_atom/0]).
 
 %%%_ * Types -----------------------------------------------------------
--type currency_atom()   :: sek | atom(). %% Currently only 'sek' supported
+-type currency_atom()   :: atom().
 -type currency_code()   :: binary().
 -opaque laundry_money() :: #money_laundry{}.
 
@@ -64,14 +64,14 @@ new(Amount, Currency, oere)    ->
                   , rational=rational:divide(rational:from_string(Amount),100)}.
 
 %% @doc Returns a string representation of the amount, defined by the given
-%%      format. Oere returns an integer for SEK amounts. decimal returns a
-%%      decimal form of any amount.
+%%      format. Oere returns the centesimal integer for amounts. decimal
+%%      returns a decimal form of any amount.
 %%
 %%      proper:check_specs/1 quickly finds examples that don't work, e.g.
 %%      [oere,{money_laundry,sek,{rational,1,3}}] which is infinitely repeating.
 -spec format(money_format:format(), laundry_money()) -> binary().
-format(Format, #money_laundry{currency=sek}=ML) ->
-    format_sek:format(Format, ensure_decimal(ML)).
+format(Format, ML) ->
+    money_format:format(Format, ensure_decimal(ML)).
 
 %% @doc Checks if the input seems to be a valid money_laundry term
 -spec is_money_laundry(any()) -> boolean().
@@ -122,8 +122,45 @@ comp(N1, N2) ->
     rational:comp(N1, N2).
 
 %%%_* Private functions ================================================
-currency_to_internal(<<"SEK">>) -> sek.
-internal_to_currency(sek)       -> <<"SEK">>.
+%% @doc List of ISO 4217 Currency codes
+-define(currency_codes,
+       [ <<"AFN">>, <<"ALL">>, <<"DZD">>, <<"USD">>, <<"EUR">>, <<"AOA">>
+       , <<"XCD">>, <<"ARS">>, <<"AMD">>, <<"AWG">>, <<"AUD">>, <<"AZN">>
+       , <<"BSD">>, <<"BHD">>, <<"BDT">>, <<"BBD">>, <<"BYN">>, <<"BZD">>
+       , <<"XOF">>, <<"BMD">>, <<"BTN">>, <<"INR">>, <<"BOB">>, <<"BOV">>
+       , <<"BAM">>, <<"BWP">>, <<"NOK">>, <<"BRL">>, <<"BND">>, <<"BGN">>
+       , <<"BIF">>, <<"CVE">>, <<"KHR">>, <<"XAF">>, <<"CAD">>, <<"KYD">>
+       , <<"CLF">>, <<"CLP">>, <<"CNY">>, <<"COP">>, <<"COU">>, <<"KMF">>
+       , <<"CDF">>, <<"NZD">>, <<"CRC">>, <<"HRK">>, <<"CUC">>, <<"CUP">>
+       , <<"ANG">>, <<"CZK">>, <<"DKK">>, <<"DJF">>, <<"DOP">>, <<"EGP">>
+       , <<"SVC">>, <<"ERN">>, <<"ETB">>, <<"FKP">>, <<"FJD">>, <<"XPF">>
+       , <<"GMD">>, <<"GEL">>, <<"GHS">>, <<"GIP">>, <<"GTQ">>, <<"GBP">>
+       , <<"GNF">>, <<"GYD">>, <<"HTG">>, <<"HNL">>, <<"HKD">>, <<"HUF">>
+       , <<"ISK">>, <<"IDR">>, <<"XDR">>, <<"IRR">>, <<"IQD">>, <<"ILS">>
+       , <<"JMD">>, <<"JPY">>, <<"JOD">>, <<"KZT">>, <<"KES">>, <<"KPW">>
+       , <<"KRW">>, <<"KWD">>, <<"KGS">>, <<"LAK">>, <<"LBP">>, <<"LSL">>
+       , <<"ZAR">>, <<"LRD">>, <<"LYD">>, <<"CHF">>, <<"MOP">>, <<"MKD">>
+       , <<"MGA">>, <<"MWK">>, <<"MYR">>, <<"MVR">>, <<"MRU">>, <<"MUR">>
+       , <<"XUA">>, <<"MXN">>, <<"MXV">>, <<"MDL">>, <<"MNT">>, <<"MAD">>
+       , <<"MZN">>, <<"MMK">>, <<"NAD">>, <<"NPR">>, <<"NIO">>, <<"NGN">>
+       , <<"OMR">>, <<"PKR">>, <<"PAB">>, <<"PGK">>, <<"PYG">>, <<"PEN">>
+       , <<"PHP">>, <<"PLN">>, <<"QAR">>, <<"RON">>, <<"RUB">>, <<"RWF">>
+       , <<"SHP">>, <<"WST">>, <<"STN">>, <<"SAR">>, <<"RSD">>, <<"SCR">>
+       , <<"SLL">>, <<"SGD">>, <<"XSU">>, <<"SBD">>, <<"SOS">>, <<"SSP">>
+       , <<"LKR">>, <<"SDG">>, <<"SRD">>, <<"SZL">>, <<"SEK">>, <<"CHE">>
+       , <<"CHW">>, <<"SYP">>, <<"TWD">>, <<"TJS">>, <<"TZS">>, <<"THB">>
+       , <<"TOP">>, <<"TTD">>, <<"TND">>, <<"TRY">>, <<"TMT">>, <<"UGX">>
+       , <<"UAH">>, <<"AED">>, <<"USN">>, <<"UYI">>, <<"UYU">>, <<"UZS">>
+       , <<"VUV">>, <<"VEF">>, <<"VND">>, <<"YER">>, <<"ZMW">>, <<"ZWL">>
+       ]).
+currency_to_internal(Bin) ->
+    true = lists:member(Bin, ?currency_codes), % Assert valid CC
+    binary_to_atom(string:lowercase(Bin), utf8).
+
+internal_to_currency(Atom) ->
+    CCBin = string:uppercase(atom_to_binary(Atom, utf8)),
+    true = lists:member(CCBin, ?currency_codes), % Assert valid CC
+    CCBin.
 
 ensure_decimal(#money_laundry{rational=Amount}=ML) ->
      case rational:is_rational(Amount) of
