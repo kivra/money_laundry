@@ -1,4 +1,4 @@
-Money Laundry (1.1.1)
+Money Laundry (1.1.2)
 =============
 
 Erlang Currency and money laundering functions. The rationale behind a custom
