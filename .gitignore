@@ -7,3 +7,4 @@ ebin
 money_laundry.d
 *.coverdata
 cover
+_build
