@@ -1,8 +1,1 @@
-[{<<"meck">>,
-  {git,"git@github.com:kivra/meck.git",
-       {ref,"1dd41ae9e6364c802cbc0b7fd75f27492ae76d80"}},
-  0},
- {<<"proper">>,
-  {git,"git@github.com:kivra/proper.git",
-       {ref,"5f0d69c831b6c9f52535c3d1846efca480f6190d"}},
-  0}].
+[].
